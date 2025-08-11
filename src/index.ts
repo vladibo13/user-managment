@@ -3,6 +3,7 @@ import dotenv from "dotenv";
 import { connectDB } from "./config/db";
 import userRoutes from "./routes/user.routes";
 import groupRoutes from "./routes/group.routes";
+import membershipRoutes from "./routes/membership.routes";
 
 dotenv.config();
 
@@ -18,6 +19,7 @@ app.get("/", (req: Request, res: Response) => {
 
 app.use("/api", userRoutes);
 app.use("/api", groupRoutes);
+app.use("/api", membershipRoutes);
 
 connectDB(MONGO_URI).then(() => {
   app.listen(PORT, () => {

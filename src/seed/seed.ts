@@ -24,8 +24,8 @@ async function seed() {
 
   // Create groups
   const [admins, users] = await Group.insertMany([
-    { name: "Admins", status: "NotEmpty" },
-    { name: "Users",  status: "NotEmpty" }
+    { name: "Admins", status: "notEmpty" },
+    { name: "Users",  status: "notEmpty" }
   ]);
 
   // Link user to group (many-to-many)
