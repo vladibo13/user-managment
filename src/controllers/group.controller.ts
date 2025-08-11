@@ -1,0 +1,35 @@
+import { Request, Response } from "express";
+import { Group } from "../models/group.model";
+
+export const getGroups = async (req: Request, res: Response) => {
+  try {
+    // query params 
+    const limitRaw = Array.isArray(req.query.limit) ? req.query.limit[0] : req.query.limit;
+    const offsetRaw = Array.isArray(req.query.offset) ? req.query.offset[0] : req.query.offset;
+
+    const limit = Math.min(Math.max(parseInt(limitRaw as string, 10) || 10, 1), 100); // 1..100
+    const offset = Math.max(parseInt(offsetRaw as string, 10) || 0, 0);               // >= 0
+
+    // Count + fetch page
+    const [total, groups] = await Promise.all([
+      Group.countDocuments({}),
+      Group.find({})
+        .sort({ created_at: -1 }) // newest first
+        .skip(offset)
+        .limit(limit)
+        .lean()
+    ]);
+
+    return res.json({
+      data: groups,
+      pagination: {
+        total,
+        limit,
+        offset,
+      }
+    });
+  } catch (err) {
+    console.error("getGroups error:", err);
+    return res.status(500).json({ message: "Failed to fetch groups" });
+  }
+};

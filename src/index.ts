@@ -2,6 +2,7 @@ import express, { Request, Response } from "express";
 import dotenv from "dotenv";
 import { connectDB } from "./config/db";
 import userRoutes from "./routes/user.routes";
+import groupRoutes from "./routes/group.routes";
 
 dotenv.config();
 
@@ -16,6 +17,7 @@ app.get("/", (req: Request, res: Response) => {
 });
 
 app.use("/api", userRoutes);
+app.use("/api", groupRoutes);
 
 connectDB(MONGO_URI).then(() => {
   app.listen(PORT, () => {
