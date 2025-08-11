@@ -1,6 +1,7 @@
 import express, { Request, Response } from "express";
 import dotenv from "dotenv";
 import { connectDB } from "./config/db";
+import userRoutes from "./routes/user.routes";
 
 dotenv.config();
 
@@ -13,6 +14,8 @@ app.use(express.json());
 app.get("/", (req: Request, res: Response) => {
   res.send("Hello from Express + TypeScript!");
 });
+
+app.use("/api", userRoutes);
 
 connectDB(MONGO_URI).then(() => {
   app.listen(PORT, () => {
