@@ -1,4 +1,4 @@
-import { Request, Response } from "express";
+import { NextFunction, Request, Response } from "express";
 import mongoose from "mongoose";
 import { UserGroup } from "../models/userGroup.model";
 import { Group } from "../models/group.model";
@@ -13,12 +13,8 @@ async function recomputeGroupStatus(groupId: string) {
   return status;
 }
 
-export const removeUserFromGroup = async (req: Request, res: Response) => {
+export const removeUserFromGroup = async (req: Request, res: Response, next: NextFunction) => {
   const { userId, groupId } = req.params;
-
-  if (!mongoose.isValidObjectId(userId) || !mongoose.isValidObjectId(groupId)) {
-    return res.status(400).json({ message: "Invalid userId or groupId" });
-  }
 
   try {
     const groupDoc = await Group.findById(groupId).lean();
@@ -45,33 +41,15 @@ export const removeUserFromGroup = async (req: Request, res: Response) => {
       groupStatus: groupDoc.status
     });
   } catch (err) {
-    console.error("removeUserFromGroup error:", err);
-    return res.status(500).json({ message: "Failed to remove user from group" });
+    next(err);
   }
 };
 
-export const updateUserStatuses = async (req: Request, res: Response) => {
+export const updateUserStatuses = async (req: Request, res: Response, next: NextFunction) => {
   const { updates } = req.body as { updates: { userId: string; status: UserStatus }[] };
-
-  // Validation checks
-  if (!Array.isArray(updates) || updates.length === 0) {
-    return res.status(400).json({ message: "No updates provided" });
-  }
 
   if (updates.length > 500) {
     return res.status(400).json({ message: "Maximum 500 updates allowed" });
-  }
-
-  const validStatuses: UserStatus[] = ["pending", "active", "blocked"];
-  
-  // Validate input data
-  const isValid = updates.every(update => 
-    mongoose.isValidObjectId(update.userId) && 
-    validStatuses.includes(update.status)
-  );
-
-  if (!isValid) {
-    return res.status(400).json({ message: "Invalid user IDs or statuses provided" });
   }
 
   try {
@@ -85,7 +63,13 @@ export const updateUserStatuses = async (req: Request, res: Response) => {
 
     // Execute bulk update
     const result = await User.bulkWrite(bulkOps);
-
+    if (result.modifiedCount === 0) {
+      return res.status(404).json({
+        message: "No users were updated",
+        matchedCount: result.matchedCount
+      });
+    }
+    
     return res.json({
       message: "Users updated successfully",
       updatedCount: result.modifiedCount,
@@ -93,7 +77,6 @@ export const updateUserStatuses = async (req: Request, res: Response) => {
     });
 
   } catch (err) {
-    console.error("Update users statuses error:", err);
-    return res.status(500).json({ message: "Failed to update user statuses" });
+   next(err);
   }
 };

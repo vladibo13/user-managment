@@ -1,14 +1,14 @@
-import { Request, Response } from "express";
+import { NextFunction, Request, Response } from "express";
 import { Group } from "../models/group.model";
 
-export const getGroups = async (req: Request, res: Response) => {
+export const getGroups = async (req: Request, res: Response, next: NextFunction) => {
   try {
     // query params 
     const limitRaw = Array.isArray(req.query.limit) ? req.query.limit[0] : req.query.limit;
     const offsetRaw = Array.isArray(req.query.offset) ? req.query.offset[0] : req.query.offset;
 
-    const limit = Math.min(Math.max(parseInt(limitRaw as string, 10) || 10, 1), 100); // 1..100
-    const offset = Math.max(parseInt(offsetRaw as string, 10) || 0, 0);               // >= 0
+    const limit = Math.min(Math.max(parseInt(limitRaw as string, 10) || 10, 1), 100); 
+    const offset = Math.max(parseInt(offsetRaw as string, 10) || 0, 0);               
 
     // Count + fetch page
     const [total, groups] = await Promise.all([
@@ -29,7 +29,6 @@ export const getGroups = async (req: Request, res: Response) => {
       }
     });
   } catch (err) {
-    console.error("getGroups error:", err);
-    return res.status(500).json({ message: "Failed to fetch groups" });
+    next(err);
   }
 };

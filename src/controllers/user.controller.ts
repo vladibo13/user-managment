@@ -1,7 +1,7 @@
-import { Request, Response } from "express";
+import { NextFunction, Request, Response } from "express";
 import { User } from "../models/user.model";
 
-export const getUsers = async (req: Request, res: Response) => {
+export const getUsers = async (req: Request, res: Response, next: NextFunction) => {
   try {
     // query params
     const limitRaw = Array.isArray(req.query.limit) ? req.query.limit[0] : req.query.limit;
@@ -29,7 +29,6 @@ export const getUsers = async (req: Request, res: Response) => {
       }
     });
   } catch (err) {
-    console.error("getUsers error:", err);
-    return res.status(500).json({ message: "Failed to fetch users" });
+    next(err)
   }
 };
